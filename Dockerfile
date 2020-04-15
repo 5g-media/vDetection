@@ -1,86 +1,48 @@
 #
-# 5gmedia-vdetection Dockerfile
+# vDetection Dockerfile
 #
 # Author: Truong-Sinh An
-# Created 12.04.2019
-# See https://docs.docker.com/get-started/part2/#dockerfile
+# Created 01.12.2019
 
-# docker rmi 5gmedia-vdetection
+# docker rmi -f vdetection
+# docker build -t vdetection .
+# docker run --name vdetection -p 9995:9995 --rm vdetection
+# docker run --name vdetection -e DEBUG=true -p 9995:9995 --rm vdetection
 
-# docker build -t 5gmedia-vdetection .
+FROM ubuntu:18.04 AS build
 
-# docker run \
-#   --name 5gmedia-vdetection \
-#   --env INPUT_STREAM_SOURCE_PROT='rtmp' \
-#   --env INPUT_STREAM_SOURCE_HOST='192.168.0.1' \
-#   --env INPUT_STREAM_SOURCE_PORT=1935 \
-#   --env INPUT_STREAM_SOURCE_BASE='/live/stream' \
-#   -p '3145:3145/tcp' \
-#   -p '5001:5001/udp' \
-#   -p '5002:5002/tcp' \
-#   -d 5gmedia-vdetection
+WORKDIR     /opt
 
-# docker run \
-#   --name 5gmedia-vdetection \
-#   --env INPUT_STREAM_SOURCE_PROT='rtmp' \
-#   --env INPUT_STREAM_SOURCE_HOST='192.168.0.1' \
-#   --env INPUT_STREAM_SOURCE_PORT=1935 \
-#   --env INPUT_STREAM_SOURCE_BASE='/live/stream' \
-#   -p '3145:3145/tcp' \
-#   -p '5001:5001/udp' \
-#   -p '5002:5002/tcp' \
-#   -it 5gmedia-vdetection /bin/bash
+COPY        . .
 
-# Use the official ubuntu (18.04) runtime as a parent image
-FROM ubuntu:18.04
+RUN \
+            apt-get update -y && \
+            apt-get install -y --no-install-recommends curl gnupg gcc g++ make apt-transport-https ca-certificates build-essential wget && \
+            # curl -sL https://deb.nodesource.com/setup_10.x | bash && \
+            curl -sL https://deb.nodesource.com/setup_12.x | bash && \
+            apt-get install -y nodejs && \
+            npm install --production && \
+            apt-get autoremove -y && \
+            apt-get clean -y
 
-# Use the ffmpeg container based on ubuntu (18.04) as a parent image
-# FROM jrottenberg/ffmpeg:4.1
+FROM ubuntu:18.04 AS release
 
-ENV DEBIAN_FRONTEND noninteractive
+WORKDIR     /opt
 
-# Install the basic things
-RUN apt-get update \
-  && apt-get install -y \
-    apt-utils \
-    sudo \
-    autoconf \
-    automake \
-    curl \
-    build-essential \
-    git \
-    cmake \
-    wget \
-  && apt-get clean \
-  && rm -rf /var/lib/apt/lists/*
+CMD         nodejs index.js
+#CMD         ["index.js"]
+#ENTRYPOINT  ["nodejs"]
 
-# Install nodejs
-RUN mkdir -p ~/ffmpeg_sources \
-  && cd ~/ffmpeg_sources \
-  && wget https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz \
-  && tar xvf ffmpeg-release-amd64-static.tar.xz \
-  && cd ffmpeg-4.1.3-amd64-static/ \
-  && cp ffmpeg /usr/bin/ffmpeg \
-  && cp ffmpeg /usr/share/ffmpeg
+COPY        --from=build /opt/ .
 
-# Install nodejs
-RUN curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
-RUN apt-get install -y nodejs
+EXPOSE      9995
 
-# Copy related files
-COPY . /opt/
-
-# Set the working directory
-WORKDIR /opt/
-
-# Install service
-RUN npm install
-
-# Expose port 3145 5001 5002
-EXPOSE 3145 5001 5002
-
-# Run service forever
-# CMD [ "npm", "start" ]
-CMD node server.js
-
-ENV DEBIAN_FRONTEND teletype
+RUN \
+            apt-get update -y && \
+            apt-get install -y --no-install-recommends curl gnupg gcc g++ make apt-transport-https lsb-release ca-certificates && \
+            # curl -sL https://deb.nodesource.com/setup_10.x | bash && \
+            curl -sL https://deb.nodesource.com/setup_12.x | bash && \
+            apt-get install -y nodejs && \
+            apt-get autoremove -y && \
+            apt-get clean -y && \
+            rm -rf /var/lib/apt/lists/*

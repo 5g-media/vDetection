@@ -13,9 +13,13 @@ roles/lol.*
 /deployBundle/
 .idea/
 
+5gmedia-vdetection.tar
+
 index.html
 index.dev.html
 index.devprocess.html
 
 !/swagger/ui/index.html
 !/docs/index.html
+
+/tensorflow/_face-recognition.js

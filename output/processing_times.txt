@@ -1,0 +1,117 @@
+PROCESSING TIMES
+
+# CPU | LAPTOP #
+
+## Detection ##
+
+### SSDMobileNetV1 ###
+fps	- ms
+10	- 254930
+15	- 357257
+20	- 471849
+25	- 574394
+30	- 714012
+
+### TinyYoloV2 ###
+fps	- ms
+10	- 134886
+15	- 134911
+20	- 135148
+25	- 145900
+30	- 179328
+
+## Recognition ##
+
+### SSDMobileNetV1 ###
+fps	- ms
+10	- 267164
+15	- 414395
+20	- 531404
+25	- 648468
+30	- 782242
+
+### TinyYoloV2 ###
+fps	- ms
+10	- 134883
+15	- 135057
+20	- 140105 
+25	- 170689
+30	- 202413
+
+
+# CPU | DEMOKRITOS #
+
+## Detection ##
+
+### SSDMobileNetV1 ###
+fps	- ms
+10	- 0
+15	- 0
+20	- 0
+25	- 0
+30	- 0
+
+### TinyYoloV2 ###
+fps	- ms
+10	- 0
+15	- 0
+20	- 0
+25	- 0
+30	- 0
+
+## Recognition ##
+
+### SSDMobileNetV1 ###
+fps	- ms
+10	- 0
+15	- 0
+20	- 0
+25	- 0
+30	- 0
+
+### TinyYoloV2 ###
+fps	- ms
+10	- 0
+15	- 0
+20	- 0 
+25	- 0
+30	- 0
+
+
+# G#PU | DEMOKRITOS #
+
+## Detection ##
+
+### SSDMobileNetV1 ###
+fps	- ms
+10	- 0
+15	- 0
+20	- 0
+25	- 0
+30	- 0
+
+### TinyYoloV2 ###
+fps	- ms
+10	- 0
+15	- 0
+20	- 0
+25	- 0
+30	- 0
+
+## Recognition ##
+
+### SSDMobileNetV1 ###
+fps	- ms
+10	- 0
+15	- 0
+20	- 0
+25	- 0
+30	- 0
+
+### TinyYoloV2 ###
+fps	- ms
+10	- 0
+15	- 0
+20	- 0 
+25	- 0
+30	- 0
