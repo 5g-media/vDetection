@@ -9,7 +9,7 @@
 # docker run --name vdetection -p 9995:9995 --rm vdetection
 # docker run --name vdetection -e DEBUG=true -p 9995:9995 --rm vdetection
 
-FROM ubuntu:18.04 AS build
+FROM nvidia/cuda:10.0-cudnn7-runtime-ubuntu18.04 AS build
 
 WORKDIR     /opt
 
@@ -25,13 +25,13 @@ RUN \
             apt-get autoremove -y && \
             apt-get clean -y
 
-FROM ubuntu:18.04 AS release
+FROM nvidia/cuda:10.0-cudnn7-runtime-ubuntu18.04 AS release
 
 WORKDIR     /opt
 
-CMD         nodejs index.js
-#CMD         ["index.js"]
-#ENTRYPOINT  ["nodejs"]
+CMD         []
+#CMD         nodejs index.js
+ENTRYPOINT  ["nodejs", "index.js"]
 
 COPY        --from=build /opt/ .
 
