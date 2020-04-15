@@ -1,0 +1,38 @@
+version: '3'
+services:
+  rtmp:
+    container_name: '5gmedia_rtmp'
+    image: 'jasonrivers/nginx-rtmp'
+    expose:
+      - 1935
+      - 8080
+    ports:
+      - '1935:1935'
+      - '8080:8080'
+  vdetection:
+    container_name: '5gmedia_vdetection'
+    network_mode: host
+    build: ./
+    environment:
+      - SWAGGER_DOC_USE=true
+      - SWAGGER_UI_USE=true
+      - INPUT_STREAM_SOURCE_PROT='rtmp'
+      - INPUT_STREAM_SOURCE_HOST=192.168.0.1
+      - INPUT_STREAM_SOURCE_PORT=1935
+      - INPUT_STREAM_SOURCE_BASE=/live/stream
+      - OUTPUT_SERVE_USE=true
+      - OUTPUT_SERVE_FRMT=rtp_mpegts
+      - OUTPUT_SERVE_PROT=rtp
+      - OUTPUT_SERVE_HOST=192.168.0.1
+      - OUTPUT_SERVE_PORT=5001
+      - OUTPUT_SERVE_BASE=/detection/demo
+    expose:
+      - 3145
+      - 5001
+      - 5002
+    ports:
+      - '3145:3145/tcp'
+      - '5001:5001/udp'
+      - '5002:5002/tcp'
+    depends_on:
+      - rtmp

@@ -1,0 +1,530 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "version": "1.0.0",
+    "title": "5G-MEDIA vDetection API specification",
+    "description": "[Swagger] API specification for vDetection service (/rest)",
+    "termsOfService": ""
+  },
+  "basePath": "/",
+  "tags": [{
+    "name": "detections",
+    "description": "API for detections | vDetection service"
+  }],
+  "schemes": ["http", "https"],
+  "consumes": ["application/json"],
+  "produces": ["application/json"],
+  "paths": {
+    "/rest/detections/start": {
+      "post": {
+        "tags": ["detections"],
+        "description": "trigger to start detections",
+        "operationId": "startDetections",
+        "produces": ["application/json"],
+        "parameters": [{
+          "name": "Authorization",
+          "in": "header",
+          "type": "string",
+          "description": "User token [BEARER]"
+        }, {
+          "name": "body",
+          "in": "body",
+          "description": "Detection configuration to start with",
+          "required": true,
+          "schema": {
+            "$ref": "#/definitions/EnvironmentSchema"
+          }
+        }],
+        "responses": {
+          "200": {
+            "description": "Response of triggered start request",
+            "schema": {
+              "$ref": "#/definitions/ContainerResponseEnvironment"
+            }
+          }
+        }
+      }
+    },
+    "/rest/detections/stop": {
+      "post": {
+        "tags": ["detections"],
+        "description": "trigger to stop detections",
+        "operationId": "stopDetections",
+        "produces": ["application/json"],
+        "parameters": [{
+          "name": "Authorization",
+          "in": "header",
+          "type": "string",
+          "description": "User token [BEARER]"
+        }],
+        "responses": {
+          "200": {
+            "description": "Response of triggered stop request",
+            "schema": {
+              "$ref": "#/definitions/ContainerResponseEnvironment"
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "SynchronizationSchema": {
+      "type": "object",
+      "properties": {
+        "active": {
+          "type": "boolean",
+          "default": false
+        },
+        "prot": {
+          "type": "string"
+        },
+        "host": {
+          "type": "string"
+        },
+        "port": {
+          "type": "number"
+        },
+        "base": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "ScaleSchema": {
+      "type": "object",
+      "properties": {
+        "active": {
+          "type": "boolean",
+          "default": false
+        },
+        "height": {
+          "type": "number"
+        },
+        "width": {
+          "type": "number"
+        }
+      }
+    },
+    "InputSettingsSchema": {
+      "type": "object",
+      "properties": {
+        "loglevel": {
+          "type": "string",
+          "enum": [
+            "quiet",
+            "info",
+            "warning",
+            "fatal",
+            "debug"
+          ],
+          "default": "quiet"
+        },
+        "fps": {
+          "type": "number"
+        },
+        "scale": {
+          "$ref": "#/definitions/ScaleSchema"
+        }
+      }
+    },
+    "InputSourceSchema": {
+      "type": "object",
+      "properties": {
+        "prot": {
+          "type": "string"
+        },
+        "host": {
+          "type": "string"
+        },
+        "port": {
+          "type": "number"
+        },
+        "base": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        },
+        "pipe": {
+          "type": "number"
+        }
+      }
+    },
+    "InputSchema": {
+      "type": "object",
+      "properties": {
+        "synchronization": {
+          "$ref": "#/definitions/SynchronizationSchema"
+        },
+        "settings": {
+          "$ref": "#/definitions/InputSettingsSchema"
+        },
+        "source": {
+          "$ref": "#/definitions/InputSourceSchema"
+        }
+      }
+    },
+    "ServeSchema": {
+      "type": "object",
+      "properties": {
+        "active": {
+          "type": "boolean",
+          "default": false
+        },
+        "frmt": {
+          "type": "string"
+        },
+        "prot": {
+          "type": "string"
+        },
+        "host": {
+          "type": "string"
+        },
+        "port": {
+          "type": "number"
+        },
+        "base": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        }
+      }
+    },
+    "InternalSchema": {
+      "type": "object",
+      "properties": {
+        "serve": {
+          "$ref": "#/definitions/ServeSchema"
+        }
+      }
+    },
+    "ProcessingSettingsSchema": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "face-detection",
+            "face-recognition"
+          ],
+          "default": "face-recognition"
+        },
+        "fps": {
+          "type": "number",
+          "enum": [
+            1,
+            5,
+            10,
+            15,
+            20,
+            25,
+            30
+          ],
+          "default": 15
+        }
+      }
+    },
+    "DetectionSchema": {
+      "type": "object",
+      "properties": {
+        "cascade_classifier": {
+          "type": "string",
+          "enum": [
+            "HAAR_FRONTALFACE_ALT",
+            "HAAR_FRONTALFACE_ALT2",
+            "HAAR_FRONTALFACE_ALT_TREE",
+            "HAAR_PROFILEFACE",
+            "LBP_FRONTALFACE",
+            "LBP_PROFILEFACE"
+          ],
+          "default": "HAAR_FRONTALFACE_ALT2"
+        },
+        "confidence_min": {
+          "type": "number",
+          "min": 1,
+          "max": 100,
+          "default": 1
+        }
+      }
+    },
+    "RecognitionSchema": {
+      "type": "object",
+      "properties": {
+        "labels": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "distance_max": {
+          "type": "number",
+          "default": 500
+        }
+      }
+    },
+    "DrawSchema": {
+      "type": "object",
+      "properties": {
+        "line": {
+          "type": "object",
+          "properties": {
+            "r": {
+              "type": "number",
+              "default": 0
+            },
+            "g": {
+              "type": "number",
+              "default": 0
+            },
+            "b": {
+              "type": "number",
+              "default": 0
+            },
+            "thickness": {
+              "type": "number",
+              "default": 1
+            }
+          }
+        },
+        "text": {
+          "type": "object",
+          "properties": {
+            "r": {
+              "type": "number",
+              "default": 0
+            },
+            "g": {
+              "type": "number",
+              "default": 0
+            },
+            "b": {
+              "type": "number",
+              "default": 0
+            },
+            "size": {
+              "type": "number",
+              "default": 1
+            },
+            "thickness": {
+              "type": "number",
+              "default": 1
+            },
+            "alpha": {
+              "type": "number",
+              "default": 0
+            }
+          }
+        }
+      }
+    },
+    "ProcessingSchema": {
+      "type": "object",
+      "properties": {
+        "settings": {
+          "$ref": "#/definitions/ProcessingSettingsSchema"
+        },
+        "detection": {
+          "$ref": "#/definitions/DetectionSchema"
+        },
+        "recognition": {
+          "$ref": "#/definitions/RecognitionSchema"
+        },
+        "draw": {
+          "$ref": "#/definitions/DrawSchema"
+        }
+      }
+    },
+    "OutputSettingsSchema": {
+      "type": "object",
+      "properties": {
+        "loglevel": {
+          "type": "string",
+          "enum": [
+            "quiet",
+            "info",
+            "warning",
+            "fatal",
+            "debug"
+          ],
+          "default": "quiet"
+        },
+        "image": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "jpg",
+                "png"
+              ],
+              "default": "png"
+            },
+            "width": {
+              "type": "number"
+            },
+            "height": {
+              "type": "number"
+            }
+          }
+        },
+        "video": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "avc1",
+                "h264",
+                "mp4v"
+              ],
+              "default": "mp4v"
+            },
+            "width": {
+              "type": "number"
+            },
+            "height": {
+              "type": "number"
+            }
+          }
+        }
+      }
+    },
+    "LocalSchema": {
+      "type": "object",
+      "properties": {
+        "image": {
+          "type": "object",
+          "properties": {
+            "active": {
+              "type": "boolean",
+              "default": false
+            },
+            "path": {
+              "type": "string"
+            },
+            "filename": {
+              "type": "string"
+            },
+            "fileextension": {
+              "type": "string"
+            }
+          }
+        },
+        "video": {
+          "type": "object",
+          "properties": {
+            "active": {
+              "type": "boolean",
+              "default": false
+            },
+            "path": {
+              "type": "string"
+            },
+            "filename": {
+              "type": "string"
+            },
+            "fileextension": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "OutputSchema": {
+      "type": "object",
+      "properties": {
+        "synchronization": {
+          "$ref": "#/definitions/SynchronizationSchema"
+        },
+        "settings": {
+          "$ref": "#/definitions/OutputSettingsSchema"
+        },
+        "local": {
+          "$ref": "#/definitions/LocalSchema"
+        },
+        "serve": {
+          "$ref": "#/definitions/ServeSchema"
+        }
+      }
+    },
+    "EnvironmentSchema": {
+      "type": "object",
+      "properties": {
+        "timestamp": {
+          "type": "number"
+        },
+        "elapsed": {
+          "type": "number"
+        },
+        "config": {
+          "type": "object",
+          "properties": {
+            "input": {
+              "$ref": "#/definitions/InputSchema"
+            },
+            "interal": {
+              "$ref": "#/definitions/InternalSchema"
+            },
+            "processing": {
+              "$ref": "#/definitions/ProcessingSchema"
+            },
+            "output": {
+              "$ref": "#/definitions/OutputSchema"
+            }
+          }
+        }
+      }
+    },
+    "Status": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer"
+        },
+        "msg": {
+          "type": "string"
+        }
+      }
+    },
+    "ContainerResponseString": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/definitions/Status"
+        }
+      }
+    },
+    "ContainerResponseEnvironment": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "$ref": "#/definitions/EnvironmentSchema"
+        },
+        "status": {
+          "$ref": "#/definitions/Status"
+        }
+      }
+    },
+    "ContainerResponseListEnvironment": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/EnvironmentSchema"
+          }
+        },
+        "status": {
+          "$ref": "#/definitions/Status"
+        }
+      }
+    }
+  }
+}

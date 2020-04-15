@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: app/modules/websocket.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: app/modules/websocket.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * @file Provides the module 'websocket'.
+ *
+ * This file is subject to the terms and conditions defined in
+ * file 'LICENSE', which is part of this source code package.
+ *
+ * @version 1.0.0
+ *
+ * @copyright BitTubes GmbH, 2019
+ * @author Truong-Sinh An &lt;truong-sinh.an@bittubes.com>
+ * @license CC-BY-SA-4.0
+ */
+
+/**
+ * @module websocket
+ * @requires node_modules:q
+ * @requires node_modules:socker.io
+ * @requires node_modules:socket.io-client
+ */
+
+'use strict';
+
+// require modules
+const Q = require("q");
+
+// require and prepare websocket
+const InputSyncPROT = process.env.OUTPUT_SYNC_PROT || 'http';
+const InputSyncHOST = process.env.OUTPUT_SYNC_HOST || 'localhost';
+const InputSyncPORT = process.env.OUTPUT_SYNC_PORT || 3145;
+const InputSyncBASE = process.env.OUTPUT_SYNC_BASE || '';
+const InputSyncURL = InputSyncPROT + '://' + InputSyncHOST + ':' + InputSyncPORT + InputSyncBASE;
+const OutputSyncPROT = process.env.OUTPUT_SYNC_PROT || 'http';
+const OutputSyncHOST = process.env.OUTPUT_SYNC_HOST || 'localhost';
+const OutputSyncPORT = process.env.OUTPUT_SYNC_PORT || 3145;
+const OutputSyncBASE = process.env.OUTPUT_SYNC_BASE || '';
+const OutputSyncURL = OutputSyncPROT + '://' + OutputSyncHOST + ':' + OutputSyncPORT + OutputSyncBASE;
+
+/**
+ * @constructs Websocket
+ * @description constructs a websocket object.
+ * @param {Integer} _port - the port.
+ * @param {Object} _server - the server.
+ * @param {Object} _client - the client.
+ * @param {Object} _service - the service.
+ * @param {Function} setPort - the setter function, sets the port.
+ * @param {Function} port - the getter function, gets the port.
+ * @param {Function} setServer - the setter function, sets the server.
+ * @param {Function} server - the getter function, gets the server.
+ * @param {Function} setClient - the setter function, sets the client.
+ * @param {Function} client - the getter function, gets the client.
+ * @param {Function} setService - the setter function, sets the service.
+ * @param {Function} service - the getter function, gets the service.
+ * @param {Function} init - the init function.
+ * @param {Function} sync - the sync function.
+ * @param {Function} on - the on function.
+ * @param {Function} info - the info function.
+ * @fires socket.io:emit
+ */
+var Websocket = {
+  _port: null,
+  _server: null,
+  _client: null,
+  _service: null,
+  setPort: function (port) {
+    return Websocket._port = port;
+  },
+  port: function () {
+    return Websocket._port;
+  },
+  setServer: function (server) {
+    return Websocket._server = server;
+  },
+  server: function () {
+    return Websocket._server;
+  },
+  setClient: function () {
+    return Websocket._client = require('socket.io-client');
+  },
+  client: function () {
+    return Websocket._client;
+  },
+  setService: function (server) {
+    return Websocket._service = require('socket.io').listen(server);
+  },
+  service: function () {
+    return Websocket._service;
+  },
+  init: function (server) {
+    var deferred = Q.defer();
+    try {
+      Websocket.setPort(server.address().port);
+      Websocket.setServer(server);
+      Websocket.setClient();
+      Websocket.setService(server);
+      Websocket.service()
+        .on('connection', function (socket) {
+          socket.on('disconnect', function () {});
+          deferred.resolve(socket);
+        });
+    } catch (err) {
+      deferred.reject(err);
+    }
+    return deferred.promise;
+  },
+  sync: function (channel, data) {
+    var deferred = Q.defer();
+    try {
+      Websocket.service().of('/').clients(function (err, clients) {
+        if (err) {
+          deferred.reject(err);
+        } else if (clients.length > 0) {
+          Websocket.service().emit(channel, data);
+          deferred.resolve();
+        } else {
+          deferred.reject('no clients');
+        }
+      });
+    } catch (err) {
+      deferred.reject(err);
+    }
+    return deferred.promise;
+  },
+  on: function (channel, customServer) {
+    var deferred = Q.defer();
+    try {
+      var server = (customServer) ? customServer : InputSyncURL;
+      const socket = Websocket.client()(server, {
+        forceNew: true
+      });
+      socket.on(channel, function (data) {
+        deferred.resolve(data);
+        socket.close();
+      });
+    } catch (err) {
+      deferred.reject(err);
+    }
+    return deferred.promise;
+  },
+  info: function (type, channel) {
+    try {
+      return {
+        type: type,
+        channel: channel
+      };
+    } catch (err) {}
+  }
+};
+
+// export module 'websocket'
+module.exports = Websocket;</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-detections.html">detections</a></li><li><a href="module-environment-schema.html">environment-schema</a></li><li><a href="module-express_doc.html">express_doc</a></li><li><a href="module-express_rest.html">express_rest</a></li><li><a href="module-input_FFmpeg.html">input_FFmpeg</a></li><li><a href="module-internal_image-loop.html">internal_image-loop</a></li><li><a href="module-internal_switch-pipe.html">internal_switch-pipe</a></li><li><a href="module-output.html">output</a></li><li><a href="module-output_FFmpeg.html">output_FFmpeg</a></li><li><a href="module-output_OpenCV_image-writer.html">output_OpenCV_image-writer</a></li><li><a href="module-output_OpenCV_video-writer.html">output_OpenCV_video-writer</a></li><li><a href="module-output_stream_passthrough-writer.html">output_stream_passthrough-writer</a></li><li><a href="module-processing.html">processing</a></li><li><a href="module-processing_OpenCV_draw-metadata.html">processing_OpenCV_draw-metadata</a></li><li><a href="module-processing_OpenCV_face-detection.html">processing_OpenCV_face-detection</a></li><li><a href="module-processing_OpenCV_face-recognition.html">processing_OpenCV_face-recognition</a></li><li><a href="module-rest.html">rest</a></li><li><a href="module-rest_authorization.html">rest_authorization</a></li><li><a href="module-swagger.html">swagger</a></li><li><a href="module-synchronization.html">synchronization</a></li><li><a href="module-vDetection.html">vDetection</a></li><li><a href="module-websocket.html">websocket</a></li></ul><h3>Classes</h3><ul><li><a href="DetectionSchema.html">DetectionSchema</a></li><li><a href="DrawSchema.html">DrawSchema</a></li><li><a href="environment.html">environment</a></li><li><a href="EnvironmentSchema.html">EnvironmentSchema</a></li><li><a href="FFmpeg.html">FFmpeg</a></li><li><a href="imageLoop.html">imageLoop</a></li><li><a href="Images.html">Images</a></li><li><a href="InputSchema.html">InputSchema</a></li><li><a href="InputSettingsSchema.html">InputSettingsSchema</a></li><li><a href="InternalSchema.html">InternalSchema</a></li><li><a href="Labels.html">Labels</a></li><li><a href="LBPH.html">LBPH</a></li><li><a href="LocalSchema.html">LocalSchema</a></li><li><a href="NameMappings.html">NameMappings</a></li><li><a href="openCVDrawMetadata.html">openCVDrawMetadata</a></li><li><a href="openCVFaceDetection.html">openCVFaceDetection</a></li><li><a href="openCVFaceRecognition.html">openCVFaceRecognition</a></li><li><a href="openCVImageWriter.html">openCVImageWriter</a></li><li><a href="openCVVideoWriter.html">openCVVideoWriter</a></li><li><a href="Output.html">Output</a></li><li><a href="OutputSchema.html">OutputSchema</a></li><li><a href="OutputSettingsSchema.html">OutputSettingsSchema</a></li><li><a href="Processing.html">Processing</a></li><li><a href="ProcessingSchema.html">ProcessingSchema</a></li><li><a href="ProcessingSettingsSchema.html">ProcessingSettingsSchema</a></li><li><a href="RecognitionSchema.html">RecognitionSchema</a></li><li><a href="ScaleSchema.html">ScaleSchema</a></li><li><a href="ServeSchema.html">ServeSchema</a></li><li><a href="streamPassthroughWriter.html">streamPassthroughWriter</a></li><li><a href="switchPipe.html">switchPipe</a></li><li><a href="Synchronization.html">Synchronization</a></li><li><a href="SynchronizationSchema.html">SynchronizationSchema</a></li><li><a href="vDetection.html">vDetection</a></li><li><a href="Websocket.html">Websocket</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Fri Apr 12 2019 13:10:29 GMT+0200 (GMT+02:00)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

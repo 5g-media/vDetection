@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: app/modules/processing_OpenCV_face-detection.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: app/modules/processing_OpenCV_face-detection.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * @file Provides the module 'processing_OpenCV_face-detection'.
+ *
+ * This file is subject to the terms and conditions defined in
+ * file 'LICENSE', which is part of this source code package.
+ *
+ * @version 1.0.0
+ *
+ * @copyright BitTubes GmbH, 2019
+ * @author Truong-Sinh An &lt;truong-sinh.an@bittubes.com>
+ * @license CC-BY-SA-4.0
+ */
+
+/**
+ * @module processing_OpenCV_face-detection
+ * @requires node_modules:dotenv
+ * @requires node_modules:q
+ * @requires node_modules:opencv4nodejs
+ */
+
+'use strict';
+
+// require 'dotenv' with environment constants and variables
+require('dotenv').config();
+
+// require modules
+const Q = require("q");
+const CV = require('opencv4nodejs');
+
+// define settings for face-detection
+const ProcessingDetectionCascadeClassifierTypes = process.env.PROCESSING_DETECTION_CASCADE_CLASSIFIER_ENUM_TYPES.toUpperCase().split(',');
+const ProcessingDetectionCascadeClassifierType = (ProcessingDetectionCascadeClassifierTypes.indexOf(process.env.PROCESSING_DETECTION_CASCADE_CLASSIFIER_TYPE.toUpperCase()) > -1) ? process.env.PROCESSING_DETECTION_CASCADE_CLASSIFIER_TYPE.toUpperCase() : 'HAAR_FRONTALFACE_ALT2';
+const Classifier = new CV.CascadeClassifier(CV[ProcessingDetectionCascadeClassifierType]);
+
+/**
+ * @constructs openCVFaceDetection
+ * @description constructs a face detector.
+ * @param {Function} detect - the detection function, based on the id of the frame (image/step), the frame (image/step), and the maxTime befor rejecting the promise
+ * @fires CV:MAT:copy
+ * @fires CV:MAT:resizeToMax
+ * @fires CV:MAT:bgrToGray
+ * @fires CV:MAT:release
+ * @fires CV:VEC:rescale
+ * @fires Classifier:detectMultiScaleAsync
+ */
+var openCVFaceDetection = {
+  detect: function (environment, id, frame, maxTime) {
+    var deferred = Q.defer();
+    var timerID = setTimeout(function () {
+      clearTimeout(timerID);
+      deferred.reject(null);
+    }, maxTime - 20);
+    if (frame) {
+      var mat = frame.copy().resizeToMax(320).bgrToGray();
+      var factor = frame.rows / mat.rows;
+      Classifier.detectMultiScaleAsync(mat).then(function (result) {
+        if (!result.objects.length) {
+          mat.release();
+          clearTimeout(timerID);
+          deferred.reject(null);
+        } else {
+          result.objects.forEach(function (object, idx) {
+            result.objects[idx] = object.rescale(factor);
+            if (idx === result.objects.length - 1) {
+              mat.release();
+              clearTimeout(timerID);
+              deferred.resolve(result);
+            }
+          });
+        }
+      });
+    } else {
+      clearTimeout(timerID);
+      deferred.reject(null);
+    }
+    return deferred.promise;
+  }
+};
+
+// export module 'processing_OpenCV_face-detection'
+module.exports = openCVFaceDetection;</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-detections.html">detections</a></li><li><a href="module-environment-schema.html">environment-schema</a></li><li><a href="module-express_doc.html">express_doc</a></li><li><a href="module-express_rest.html">express_rest</a></li><li><a href="module-input_FFmpeg.html">input_FFmpeg</a></li><li><a href="module-internal_image-loop.html">internal_image-loop</a></li><li><a href="module-internal_switch-pipe.html">internal_switch-pipe</a></li><li><a href="module-output.html">output</a></li><li><a href="module-output_FFmpeg.html">output_FFmpeg</a></li><li><a href="module-output_OpenCV_image-writer.html">output_OpenCV_image-writer</a></li><li><a href="module-output_OpenCV_video-writer.html">output_OpenCV_video-writer</a></li><li><a href="module-output_stream_passthrough-writer.html">output_stream_passthrough-writer</a></li><li><a href="module-processing.html">processing</a></li><li><a href="module-processing_OpenCV_draw-metadata.html">processing_OpenCV_draw-metadata</a></li><li><a href="module-processing_OpenCV_face-detection.html">processing_OpenCV_face-detection</a></li><li><a href="module-processing_OpenCV_face-recognition.html">processing_OpenCV_face-recognition</a></li><li><a href="module-rest.html">rest</a></li><li><a href="module-rest_authorization.html">rest_authorization</a></li><li><a href="module-swagger.html">swagger</a></li><li><a href="module-synchronization.html">synchronization</a></li><li><a href="module-vDetection.html">vDetection</a></li><li><a href="module-websocket.html">websocket</a></li></ul><h3>Classes</h3><ul><li><a href="DetectionSchema.html">DetectionSchema</a></li><li><a href="DrawSchema.html">DrawSchema</a></li><li><a href="environment.html">environment</a></li><li><a href="EnvironmentSchema.html">EnvironmentSchema</a></li><li><a href="FFmpeg.html">FFmpeg</a></li><li><a href="imageLoop.html">imageLoop</a></li><li><a href="Images.html">Images</a></li><li><a href="InputSchema.html">InputSchema</a></li><li><a href="InputSettingsSchema.html">InputSettingsSchema</a></li><li><a href="InternalSchema.html">InternalSchema</a></li><li><a href="Labels.html">Labels</a></li><li><a href="LBPH.html">LBPH</a></li><li><a href="LocalSchema.html">LocalSchema</a></li><li><a href="NameMappings.html">NameMappings</a></li><li><a href="openCVDrawMetadata.html">openCVDrawMetadata</a></li><li><a href="openCVFaceDetection.html">openCVFaceDetection</a></li><li><a href="openCVFaceRecognition.html">openCVFaceRecognition</a></li><li><a href="openCVImageWriter.html">openCVImageWriter</a></li><li><a href="openCVVideoWriter.html">openCVVideoWriter</a></li><li><a href="Output.html">Output</a></li><li><a href="OutputSchema.html">OutputSchema</a></li><li><a href="OutputSettingsSchema.html">OutputSettingsSchema</a></li><li><a href="Processing.html">Processing</a></li><li><a href="ProcessingSchema.html">ProcessingSchema</a></li><li><a href="ProcessingSettingsSchema.html">ProcessingSettingsSchema</a></li><li><a href="RecognitionSchema.html">RecognitionSchema</a></li><li><a href="ScaleSchema.html">ScaleSchema</a></li><li><a href="ServeSchema.html">ServeSchema</a></li><li><a href="streamPassthroughWriter.html">streamPassthroughWriter</a></li><li><a href="switchPipe.html">switchPipe</a></li><li><a href="Synchronization.html">Synchronization</a></li><li><a href="SynchronizationSchema.html">SynchronizationSchema</a></li><li><a href="vDetection.html">vDetection</a></li><li><a href="Websocket.html">Websocket</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Fri Apr 12 2019 13:10:29 GMT+0200 (GMT+02:00)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

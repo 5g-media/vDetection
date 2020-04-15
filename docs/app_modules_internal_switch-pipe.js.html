@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: app/modules/internal_switch-pipe.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: app/modules/internal_switch-pipe.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * @file Provides the module 'internal_switch-pipe'.
+ *
+ * This file is subject to the terms and conditions defined in
+ * file 'LICENSE', which is part of this source code package.
+ *
+ * @version 1.0.0
+ *
+ * @copyright BitTubes GmbH, 2019
+ * @author Truong-Sinh An &lt;truong-sinh.an@bittubes.com>
+ * @license CC-BY-SA-4.0
+ */
+
+/**
+ * @module internal_switch-pipe
+ * @requires node_modules:dotenv
+ * @requires node_modules:dev-null
+ * @requires node_modules:stream
+ * @requires modules:internal_image-loop
+ */
+
+'use strict';
+
+// require 'dotenv' with environment constants and variables
+require('dotenv').config();
+
+// require modules
+const DevNull = require('dev-null');
+const {
+  PassThrough
+} = require('stream');
+const In1 = require('./internal_image-loop');
+
+/**
+ * @constructs switchPipe
+ * @description constructs an image-loop object.
+ * @param {Object} _streamIn1 - the streamIn1 source object.
+ * @param {Object} _streamIn2 - the streamIn2 source object.
+ * @param {Object} _streamOut - the streamOut stream passthrough object.
+ * @param {Object} _sink - the sink object.
+ * @param {Boolean} _stateIn1Out - the stateIn1Out flag.
+ * @param {Function} setStreamIn1 - the setter function, sets a streamIn1 passthrough object.
+ * @param {Function} streamIn1 - the getter function, gets a streamIn1 passthrough object.
+ * @param {Function} setStreamIn2 - the setter function, sets a streamIn2 passthrough object.
+ * @param {Function} streamIn2 - the getter function, gets a streamIn2 passthrough object.
+ * @param {Function} setStreamOut - the setter function, sets a streamOut passthrough object.
+ * @param {Function} streamOut - the getter function, gets a streamOut passthrough object.
+ * @param {Function} setSink - the setter function, sets a sink object.
+ * @param {Function} sink - the getter function, gets a sink object.
+ * @param {Function} setStateIn1Out - the setter function, sets the stateIn1Out flag.
+ * @param {Function} stateIn1Out - the getter function, gets the stateIn1Out flag.
+ * @param {Function} switch - the switch function, switches both in channels.
+ * @param {Function} start - the start function, starts the switch-pipe.
+ * @param {Function} addStream - the addStream function, adds a second stream to the switch-pipe passthrough to a sink.
+ * @param {Function} stop - the stop function, stops the switch-pipe.
+ * @param {Function} reset - the reset function, resets the switch-pipe.
+ * @fires stream:passthrough:pipe
+ * @fires stream:passthrough:unpipe
+ */
+var switchPipe = {
+  _streamIn1: null,
+  _streamIn2: null,
+  _streamOut: null,
+  _sink: null,
+  _stateIn1Out: null,
+  setStreamIn1: function () {
+    switchPipe._streamIn1 = new PassThrough();
+  },
+  setStreamIn2: function () {
+    switchPipe._streamIn2 = new PassThrough();
+  },
+  setStreamOut: function () {
+    switchPipe._streamOut = new PassThrough();
+  },
+  setSink: function () {
+    switchPipe._sink = DevNull();
+  },
+  setStateIn1Out: function (state) {
+    switchPipe._stateIn1Out = state;
+  },
+  streamIn1: function () {
+    return switchPipe._streamIn1;
+  },
+  streamIn2: function () {
+    return switchPipe._streamIn2;
+  },
+  streamOut: function () {
+    return switchPipe._streamOut;
+  },
+  sink: function () {
+    return switchPipe._sink;
+  },
+  stateIn1Out: function () {
+    return switchPipe._stateIn1Out;
+  },
+  pipeIn1OutIn2Sink: function () {
+    switchPipe.streamIn1().pipe(switchPipe.streamOut())
+      .on('close', function (code, signal) {})
+      .on('end', function (code, signal) {})
+      .on('error', function (error) {});
+    switchPipe.streamIn2().pipe(switchPipe.sink())
+      .on('close', function (code, signal) {})
+      .on('end', function (code, signal) {})
+      .on('error', function (error) {});
+    switchPipe.setStateIn1Out(true);
+  },
+  pipeIn1SinkIn2Out: function () {
+    switchPipe.streamIn1().pipe(switchPipe.sink())
+      .on('close', function (code, signal) {})
+      .on('end', function (code, signal) {})
+      .on('error', function (error) {});
+    switchPipe.streamIn2().pipe(switchPipe.streamOut())
+      .on('close', function (code, signal) {})
+      .on('end', function (code, signal) {})
+      .on('error', function (error) {});
+    switchPipe.setStateIn1Out(false);
+  },
+  unpipeIn1OutIn2Sink: function () {
+    switchPipe.streamIn1().unpipe(switchPipe.streamOut());
+    switchPipe.streamIn2().unpipe(switchPipe.sink());
+  },
+  unpipeIn1SinkIn2Out: function () {
+    switchPipe.streamIn1().unpipe(switchPipe.sink());
+    switchPipe.streamIn2().unpipe(switchPipe.streamOut());
+  },
+  switch: function () {
+    console.log('switch-pipe:', 'switching streams');
+    if (switchPipe.stateIn1Out()) {
+      switchPipe.unpipeIn1OutIn2Sink();
+      switchPipe.pipeIn1SinkIn2Out();
+    } else {
+      switchPipe.unpipeIn1SinkIn2Out();
+      switchPipe.pipeIn1OutIn2Sink();
+    }
+  },
+  start: function (fps, width, height) {
+    console.log('switch-pipe:', 'start with 1st stream');
+    switchPipe.setStreamIn1();
+    switchPipe.setStreamOut();
+    switchPipe.streamIn1().pipe(switchPipe.streamOut())
+      .on('close', function (code, signal) {})
+      .on('end', function (code, signal) {})
+      .on('error', function (error) {});
+    In1.start(fps, width, height).pipe(switchPipe.streamIn1())
+      .on('close', function (code, signal) {})
+      .on('end', function (code, signal) {})
+      .on('error', function (error) {});
+    switchPipe.setStateIn1Out(true);
+    return switchPipe.streamOut();
+  },
+  addStream: function (stream) {
+    console.log('switch-pipe:', 'adding 2nd stream');
+    switchPipe.setStreamIn2();
+    switchPipe.setSink();
+    switchPipe.streamIn2().pipe(switchPipe.sink())
+      .on('close', function (code, signal) {})
+      .on('end', function (code, signal) {})
+      .on('error', function (error) {});
+    stream.pipe(switchPipe.streamIn2())
+      .on('close', function (code, signal) {})
+      .on('end', function (code, signal) {})
+      .on('error', function (error) {});
+    switchPipe.switch();
+  },
+  stop: function () {
+    // In1.stop();
+    return switchPipe.reset();
+  },
+  reset: function () {
+    switchPipe._streamIn1 = null;
+    switchPipe._streamIn2 = null;
+    switchPipe._streamOut = null;
+    switchPipe._sink = null;
+    switchPipe._stateIn1Out = null;
+    return Date.now();
+  }
+};
+
+// export module 'internal_switch-pipe'
+module.exports = switchPipe;</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-detections.html">detections</a></li><li><a href="module-environment-schema.html">environment-schema</a></li><li><a href="module-express_doc.html">express_doc</a></li><li><a href="module-express_rest.html">express_rest</a></li><li><a href="module-input_FFmpeg.html">input_FFmpeg</a></li><li><a href="module-internal_image-loop.html">internal_image-loop</a></li><li><a href="module-internal_switch-pipe.html">internal_switch-pipe</a></li><li><a href="module-output.html">output</a></li><li><a href="module-output_FFmpeg.html">output_FFmpeg</a></li><li><a href="module-output_OpenCV_image-writer.html">output_OpenCV_image-writer</a></li><li><a href="module-output_OpenCV_video-writer.html">output_OpenCV_video-writer</a></li><li><a href="module-output_stream_passthrough-writer.html">output_stream_passthrough-writer</a></li><li><a href="module-processing.html">processing</a></li><li><a href="module-processing_OpenCV_draw-metadata.html">processing_OpenCV_draw-metadata</a></li><li><a href="module-processing_OpenCV_face-detection.html">processing_OpenCV_face-detection</a></li><li><a href="module-processing_OpenCV_face-recognition.html">processing_OpenCV_face-recognition</a></li><li><a href="module-rest.html">rest</a></li><li><a href="module-rest_authorization.html">rest_authorization</a></li><li><a href="module-swagger.html">swagger</a></li><li><a href="module-synchronization.html">synchronization</a></li><li><a href="module-vDetection.html">vDetection</a></li><li><a href="module-websocket.html">websocket</a></li></ul><h3>Classes</h3><ul><li><a href="DetectionSchema.html">DetectionSchema</a></li><li><a href="DrawSchema.html">DrawSchema</a></li><li><a href="environment.html">environment</a></li><li><a href="EnvironmentSchema.html">EnvironmentSchema</a></li><li><a href="FFmpeg.html">FFmpeg</a></li><li><a href="imageLoop.html">imageLoop</a></li><li><a href="Images.html">Images</a></li><li><a href="InputSchema.html">InputSchema</a></li><li><a href="InputSettingsSchema.html">InputSettingsSchema</a></li><li><a href="InternalSchema.html">InternalSchema</a></li><li><a href="Labels.html">Labels</a></li><li><a href="LBPH.html">LBPH</a></li><li><a href="LocalSchema.html">LocalSchema</a></li><li><a href="NameMappings.html">NameMappings</a></li><li><a href="openCVDrawMetadata.html">openCVDrawMetadata</a></li><li><a href="openCVFaceDetection.html">openCVFaceDetection</a></li><li><a href="openCVFaceRecognition.html">openCVFaceRecognition</a></li><li><a href="openCVImageWriter.html">openCVImageWriter</a></li><li><a href="openCVVideoWriter.html">openCVVideoWriter</a></li><li><a href="Output.html">Output</a></li><li><a href="OutputSchema.html">OutputSchema</a></li><li><a href="OutputSettingsSchema.html">OutputSettingsSchema</a></li><li><a href="Processing.html">Processing</a></li><li><a href="ProcessingSchema.html">ProcessingSchema</a></li><li><a href="ProcessingSettingsSchema.html">ProcessingSettingsSchema</a></li><li><a href="RecognitionSchema.html">RecognitionSchema</a></li><li><a href="ScaleSchema.html">ScaleSchema</a></li><li><a href="ServeSchema.html">ServeSchema</a></li><li><a href="streamPassthroughWriter.html">streamPassthroughWriter</a></li><li><a href="switchPipe.html">switchPipe</a></li><li><a href="Synchronization.html">Synchronization</a></li><li><a href="SynchronizationSchema.html">SynchronizationSchema</a></li><li><a href="vDetection.html">vDetection</a></li><li><a href="Websocket.html">Websocket</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Fri Apr 12 2019 13:10:29 GMT+0200 (GMT+02:00)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

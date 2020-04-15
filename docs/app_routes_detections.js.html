@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: app/routes/detections.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: app/routes/detections.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * @file Provides the express route /detections API.
+ *
+ * This file is subject to the terms and conditions defined in
+ * file 'LICENSE', which is part of this source code package.
+ *
+ * @version 1.0.0
+ *
+ * @copyright BitTubes GmbH, 2019
+ * @author Truong-Sinh An &lt;truong-sinh.an@bittubes.com>
+ * @license CC-BY-SA-4.0
+ */
+
+/**
+ * @module detections
+ * @version 1.0.0
+ * @requires node_modules:dotenv
+ * @requires node_modules:express
+ * @requires modules:rest
+ * @requires modules:detection-ffmpeg-jpeg
+ * @requires models:detection-schema
+ */
+
+'use strict';
+
+// require 'dotenv' with environment constants and variables
+require('dotenv').config();
+
+// define express route 'detection'
+var express = require('express');
+var router = express.Router();
+
+// define express json-schema validator
+var { Validator, ValidationError } = require('express-json-validator-middleware');
+var validator = new Validator({ allErrors: true, verbose: true });
+var validate = validator.validate;
+
+// require modules
+const Rest = require('../modules/rest');
+const { environment, vDetection } = require('../modules/input');
+
+// require schema
+const EnvironmentSchema = require('../models/environment-schema');
+
+// define route /detections/start
+router.route('/detections/start')
+  .post(validate({ body: EnvironmentSchema }), function (req, res) {
+    try {
+      var customInputStream = (req.body.info.input.stream) ? req.body.info.input.stream : null;
+      if (customInputStream) {
+        environment.setInputStreamSourceURL(customInputStream);
+      }
+      var customProcessingSettingsFPS = (req.body.info.processing.settings.fps) ? req.body.info.processing.settings.fps : null;
+      if (customProcessingSettingsFPS) {
+        environment.setProcessingSettingsFps(customProcessingSettingsFPS);
+      }
+      vDetection.start(environment).then(function (data) {
+        res.json(Rest.getResponseBody(200, 'ok', data));
+      }).catch(function (err) {
+        res.status(409).json(Rest.getResponseBody(409, 'Error executing request', err));
+      });
+    } catch (err) {
+      res.status(400).json(Rest.getResponseBody(400, 'Error executing request', null));
+    }
+  });
+
+// define route /detections/stop
+router.route('/detections/stop')
+  .post(validate({ body: EnvironmentSchema }), function (req, res) {
+    try {
+      vDetection.stop(environment).then(function (data) {
+        res.json(Rest.getResponseBody(200, 'ok', data));
+      }).catch(function (err) {
+        res.status(409).json(Rest.getResponseBody(409, 'Error executing request', err));
+      });
+    } catch (err) {
+      res.status(400).json(Rest.getResponseBody(400, 'Error executing request', null));
+    }
+  });
+
+// Error handler for validation errors
+router.use(function (err, req, res, next) {
+  if (err instanceof ValidationError) {
+    res.status(400).json(Rest.getResponseBody(400, 'Error executing request', err.validationErrors));
+    next();
+  } else next(err);
+});
+
+// export module 'detections'
+module.exports.router = router;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-detections.html">detections</a></li><li><a href="module-environment-schema.html">environment-schema</a></li><li><a href="module-express_doc.html">express_doc</a></li><li><a href="module-express_rest.html">express_rest</a></li><li><a href="module-input_FFmpeg.html">input_FFmpeg</a></li><li><a href="module-internal_image-loop.html">internal_image-loop</a></li><li><a href="module-internal_switch-pipe.html">internal_switch-pipe</a></li><li><a href="module-output.html">output</a></li><li><a href="module-output_FFmpeg.html">output_FFmpeg</a></li><li><a href="module-output_OpenCV_image-writer.html">output_OpenCV_image-writer</a></li><li><a href="module-output_OpenCV_video-writer.html">output_OpenCV_video-writer</a></li><li><a href="module-output_stream_passthrough-writer.html">output_stream_passthrough-writer</a></li><li><a href="module-processing.html">processing</a></li><li><a href="module-processing_OpenCV_draw-metadata.html">processing_OpenCV_draw-metadata</a></li><li><a href="module-processing_OpenCV_face-detection.html">processing_OpenCV_face-detection</a></li><li><a href="module-processing_OpenCV_face-recognition.html">processing_OpenCV_face-recognition</a></li><li><a href="module-rest.html">rest</a></li><li><a href="module-rest_authorization.html">rest_authorization</a></li><li><a href="module-swagger.html">swagger</a></li><li><a href="module-synchronization.html">synchronization</a></li><li><a href="module-vDetection.html">vDetection</a></li><li><a href="module-websocket.html">websocket</a></li></ul><h3>Classes</h3><ul><li><a href="DetectionSchema.html">DetectionSchema</a></li><li><a href="DrawSchema.html">DrawSchema</a></li><li><a href="environment.html">environment</a></li><li><a href="EnvironmentSchema.html">EnvironmentSchema</a></li><li><a href="FFmpeg.html">FFmpeg</a></li><li><a href="imageLoop.html">imageLoop</a></li><li><a href="Images.html">Images</a></li><li><a href="InputSchema.html">InputSchema</a></li><li><a href="InputSettingsSchema.html">InputSettingsSchema</a></li><li><a href="InternalSchema.html">InternalSchema</a></li><li><a href="Labels.html">Labels</a></li><li><a href="LBPH.html">LBPH</a></li><li><a href="LocalSchema.html">LocalSchema</a></li><li><a href="NameMappings.html">NameMappings</a></li><li><a href="openCVDrawMetadata.html">openCVDrawMetadata</a></li><li><a href="openCVFaceDetection.html">openCVFaceDetection</a></li><li><a href="openCVFaceRecognition.html">openCVFaceRecognition</a></li><li><a href="openCVImageWriter.html">openCVImageWriter</a></li><li><a href="openCVVideoWriter.html">openCVVideoWriter</a></li><li><a href="Output.html">Output</a></li><li><a href="OutputSchema.html">OutputSchema</a></li><li><a href="OutputSettingsSchema.html">OutputSettingsSchema</a></li><li><a href="Processing.html">Processing</a></li><li><a href="ProcessingSchema.html">ProcessingSchema</a></li><li><a href="ProcessingSettingsSchema.html">ProcessingSettingsSchema</a></li><li><a href="RecognitionSchema.html">RecognitionSchema</a></li><li><a href="ScaleSchema.html">ScaleSchema</a></li><li><a href="ServeSchema.html">ServeSchema</a></li><li><a href="streamPassthroughWriter.html">streamPassthroughWriter</a></li><li><a href="switchPipe.html">switchPipe</a></li><li><a href="Synchronization.html">Synchronization</a></li><li><a href="SynchronizationSchema.html">SynchronizationSchema</a></li><li><a href="vDetection.html">vDetection</a></li><li><a href="Websocket.html">Websocket</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Fri Apr 12 2019 13:10:29 GMT+0200 (GMT+02:00)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

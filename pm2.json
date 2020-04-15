@@ -1,0 +1,15 @@
+{
+  "apps": [
+    {
+      "name": "vdetection",
+      "script": "server.js",
+      "cwd": ".",
+      "output": "logs/vdetection_stdout.log",
+      "error": "logs/vdetection_stderr.log",
+      "pid": "pids/vdetection.pid",
+      "watch": [
+        ".env"
+      ]
+    }
+  ]
+}
